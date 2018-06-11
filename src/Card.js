@@ -7,7 +7,7 @@ const Base = styled("div")(
   {
     width: "100%",
     height: "100%",
-    position: "relative",
+    position: "absolute",
     borderRadius: 8,
   },
   ({ color, background }) => ({
@@ -22,35 +22,44 @@ const Title = styled("h1")(
     padding: 0,
     margin: 0,
     textTransform: "uppercase",
-    fontWeight: "light",
-    display: "grid",
-    alignItems: "center",
-    height: 60,
+    fontWeight: "normal",
+    lineHeight: "60px",
   },
-  ({ active }) => ({
-    marginLeft: active ? 60 : 20,
+  ({ hasMargin }) => ({
+    marginLeft: hasMargin ? 60 : 20,
   }),
 );
 
-const StyledLink = styled(Link)({
-  display: "block",
-  width: "100%",
-  height: "100%",
-  textDecoration: "none",
-  color: "currentcolor",
-  ["&:visited"]: { color: "currentcolor" },
-  ["&:hover"]: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+const StyledLink = styled(Link)(
+  {
+    display: "block",
+    width: "100%",
+    height: "100%",
+    textDecoration: "none",
+    color: "currentcolor",
+    "&:visited": { color: "currentcolor" },
   },
-});
+  ({ disabled }) => ({
+    cursor: disabled ? "default" : "pointer",
+    "&:hover": {
+      backgroundColor: disabled ? undefined : "rgba(255, 255, 255, 0.05)",
+    },
+  }),
+);
 
-const MenuButton = styled(TiThMenu)({
+const MenuButton = styled("div")({
   padding: 14,
   position: "absolute",
   top: 0,
   left: 0,
   cursor: "pointer",
 });
+
+const preventLink = event => {
+  event.nativeEvent.stopImmediatePropagation();
+  event.nativeEvent.preventDefault();
+  event.preventDefault();
+};
 
 export const Card = ({
   color,
@@ -59,32 +68,34 @@ export const Card = ({
   hideMenu,
   active,
   title,
+  stacked,
   stackIndex,
 }) => {
-  const content = (
-    <React.Fragment>
-      {active && <MenuButton color={color} size={32} onClick={showMenu} />}
-      <Title active={active}>{title}</Title>
-    </React.Fragment>
-  );
-  return (
-    <Base
-      color={color}
-      background={background}
-      style={
-        stackIndex && {
+  const baseStyle = active
+    ? {}
+    : stacked
+      ? {
           transform: `translate(${stackIndex * 20}px, ${stackIndex * 60}px)`,
-          position: "absolute",
         }
-      }
-    >
-      {active ? (
-        content
-      ) : (
-        <StyledLink onClick={hideMenu} to={`/${title.toLowerCase()}`}>
-          {content}
-        </StyledLink>
+      : {
+          transform: `translate(${480}px, ${stackIndex * 60}px)`,
+        };
+
+  return (
+    <Base color={color} background={background} style={baseStyle}>
+      {active && (
+        <MenuButton>
+          <TiThMenu color={color} size={32} onClick={showMenu} />
+        </MenuButton>
       )}
+      <StyledLink
+        replace
+        disabled={active}
+        onClick={active ? preventLink : hideMenu}
+        to={`/${title.toLowerCase()}`}
+      >
+        <Title hasMargin={active}>{title}</Title>
+      </StyledLink>
     </Base>
   );
 };

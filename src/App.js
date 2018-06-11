@@ -1,36 +1,13 @@
 import React, { Component } from "react";
 import { Container } from "./Container";
-import { purple, orange, red, yellow, lightGrey, grey } from "./palette";
 import { Card } from "./Card";
 import { TiTimes } from "react-icons/lib/ti";
 import styled from "react-emotion";
-import { Route, Switch } from "react-router";
-import { Link } from "react-router-dom";
+import { withRouter } from "react-router";
+import { cards } from "./cards";
+import { grey } from "./palette";
 
-const cards = [
-  {
-    title: "Contact",
-    background: purple,
-    color: orange,
-  },
-  {
-    title: "About",
-    background: red,
-    color: yellow,
-  },
-  {
-    title: "Team",
-    background: orange,
-    color: purple,
-  },
-  {
-    title: "Projects",
-    background: yellow,
-    color: red,
-  },
-];
-
-const CloseButton = styled(TiTimes)({
+const CloseButton = styled("div")({
   padding: 14,
   position: "absolute",
   top: 0,
@@ -48,44 +25,34 @@ class App extends Component {
 
   render() {
     const { showMenu } = this.state;
+    const { location } = this.props;
+    const activeRouteIndex = cards.findIndex(card =>
+      location.pathname.includes(card.title.toLowerCase()),
+    );
 
     return (
       <Container>
-        {showMenu &&
-          cards.map((card, index) => (
-            <React.Fragment key={card.title} onClick={this.hideMenu}>
-              <CloseButton onClick={this.hideMenu} size={40} color={grey} />
-              <Card
-                stackIndex={index + 1}
-                hideMenu={this.hideMenu}
-                background={card.background}
-                color={card.color}
-                title={card.title}
-              />
-            </React.Fragment>
-          ))}
-        {!showMenu && (
-          <Switch>
-            {cards.map(card => (
-              <Route
-                path={`/${card.title.toLowerCase()}`}
-                key={card.title}
-                component={() => (
-                  <Card
-                    active
-                    showMenu={this.showMenu}
-                    background={card.background}
-                    color={card.color}
-                    title={card.title}
-                  />
-                )}
-              />
-            ))}
-          </Switch>
+        {showMenu && (
+          <CloseButton onClick={this.hideMenu}>
+            <TiTimes size={40} color={grey} />
+          </CloseButton>
         )}
+        {cards.map((card, index) => (
+          <Card
+            key={card.title}
+            active={!showMenu && index === activeRouteIndex}
+            stacked={showMenu}
+            stackIndex={index + 1}
+            hideMenu={this.hideMenu}
+            showMenu={this.showMenu}
+            background={card.background}
+            color={card.color}
+            title={card.title}
+          />
+        ))}
       </Container>
     );
   }
 }
 
-export default App;
+export default withRouter(App);
