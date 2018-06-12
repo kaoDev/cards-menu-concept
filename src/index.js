@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import { injectGlobal } from "emotion";
 import { BrowserRouter } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router";
 injectGlobal({
   "body,html,#root": {
     width: "100%",
@@ -15,7 +16,10 @@ injectGlobal({
 
 ReactDOM.render(
   <BrowserRouter>
-    <App />
+    <Switch>
+      <Route path="/" exact component={() => <Redirect to="/contact" />} />
+      <Route component={App} />
+    </Switch>
   </BrowserRouter>,
   document.getElementById("root"),
 );
