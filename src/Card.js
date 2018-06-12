@@ -2,6 +2,8 @@ import * as React from "react";
 import styled from "react-emotion";
 import { Link } from "react-router-dom";
 import { TiThMenu } from "react-icons/lib/ti";
+import posed, { PoseGroup } from "react-pose";
+import { tweenEaseFaster, tweenEaseSlow, tweenEaseFast } from "./transitions";
 
 const Base = styled("div")(
   {
@@ -16,19 +18,14 @@ const Base = styled("div")(
   }),
 );
 
-const Title = styled("h1")(
-  {
-    fontSize: 20,
-    padding: 0,
-    margin: 0,
-    textTransform: "uppercase",
-    fontWeight: "normal",
-    lineHeight: "60px",
-  },
-  ({ hasMargin }) => ({
-    marginLeft: hasMargin ? 60 : 20,
-  }),
-);
+const Title = styled("h1")({
+  fontSize: 20,
+  padding: 0,
+  margin: 0,
+  textTransform: "uppercase",
+  fontWeight: "normal",
+  lineHeight: "60px",
+});
 
 const StyledLink = styled(Link)(
   {
@@ -55,6 +52,38 @@ const MenuButton = styled("div")({
   cursor: "pointer",
 });
 
+const MenuButtonAnimated = posed(MenuButton)({
+  exit: {
+    opacity: 0,
+    scale: 0,
+    transition: {
+      default: tweenEaseFaster,
+    },
+  },
+  enter: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      default: tweenEaseFaster,
+    },
+  },
+});
+
+const TitleAnimated = posed(Title)({
+  stack: {
+    x: "20px",
+    transition: {
+      default: tweenEaseSlow,
+    },
+  },
+  content: {
+    x: "60px",
+    transition: {
+      default: tweenEaseFast,
+    },
+  },
+});
+
 const preventLink = event => {
   event.nativeEvent.stopImmediatePropagation();
   event.nativeEvent.preventDefault();
@@ -70,31 +99,24 @@ export const Card = ({
   title,
   stacked,
   stackIndex,
+  hostRef,
 }) => {
-  const baseStyle = active
-    ? {}
-    : stacked
-      ? {
-          transform: `translate(${stackIndex * 20}px, ${stackIndex * 60}px)`,
-        }
-      : {
-          transform: `translate(${480}px, ${stackIndex * 60}px)`,
-        };
-
   return (
-    <Base color={color} background={background} style={baseStyle}>
-      {active && (
-        <MenuButton>
-          <TiThMenu color={color} size={32} onClick={showMenu} />
-        </MenuButton>
-      )}
+    <Base innerRef={hostRef} color={color} background={background}>
+      <PoseGroup>
+        {active && (
+          <MenuButtonAnimated key="menuButton">
+            <TiThMenu color={color} size={32} onClick={showMenu} />
+          </MenuButtonAnimated>
+        )}
+      </PoseGroup>
       <StyledLink
         replace
         disabled={active}
         onClick={active ? preventLink : hideMenu}
         to={`/${title.toLowerCase()}`}
       >
-        <Title hasMargin={active}>{title}</Title>
+        <TitleAnimated>{title}</TitleAnimated>
       </StyledLink>
     </Base>
   );

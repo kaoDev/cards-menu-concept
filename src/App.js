@@ -7,12 +7,58 @@ import { withRouter } from "react-router";
 import { cards } from "./cards";
 import { grey } from "./palette";
 
-const CloseButton = styled("div")({
+import posed, { PoseGroup } from "react-pose";
+import { tweenEaseFast, tweenEaseFaster, tweenEaseSlow } from "./transitions";
+
+const CloseButtonBase = styled("div")({
   padding: 14,
   position: "absolute",
   top: 0,
   left: 0,
   cursor: "pointer",
+  transformOrigin: "0% 100%",
+});
+
+const buttonEnter = {
+  rotate: "0deg",
+  y: "0%",
+  transition: {
+    default: tweenEaseFast,
+  },
+};
+
+const buttonExit = {
+  rotate: "90deg",
+  y: "100%",
+  transition: {
+    default: tweenEaseFast,
+  },
+};
+
+const CloseButton = posed(CloseButtonBase)({
+  enter: buttonEnter,
+  exit: buttonExit,
+});
+
+const cardStacked = {
+  x: ({ stackIndex }) => `${stackIndex * 20}px`,
+  y: ({ stackIndex }) => `${stackIndex * 60}px`,
+  transition: {
+    default: tweenEaseSlow,
+  },
+};
+const cardContent = {
+  x: ({ active, fromTop }) => (active || fromTop ? "0px" : "480px"),
+  y: ({ stackIndex, active, fromTop }) =>
+    active || fromTop ? "0px" : `${stackIndex * 60}px`,
+  transition: {
+    default: tweenEaseFast,
+  },
+};
+
+const AnimatedCard = posed(Card)({
+  stack: cardStacked,
+  content: cardContent,
 });
 
 class App extends Component {
@@ -32,14 +78,18 @@ class App extends Component {
 
     return (
       <Container>
-        {showMenu && (
-          <CloseButton onClick={this.hideMenu}>
-            <TiTimes size={40} color={grey} />
-          </CloseButton>
-        )}
+        <PoseGroup animateOnMount>
+          {showMenu && (
+            <CloseButton key={"closeButton"} onClick={this.hideMenu}>
+              <TiTimes size={40} color={grey} />
+            </CloseButton>
+          )}
+        </PoseGroup>
         {cards.map((card, index) => (
-          <Card
+          <AnimatedCard
+            pose={showMenu ? "stack" : "content"}
             key={card.title}
+            fromTop={index <= activeRouteIndex}
             active={!showMenu && index === activeRouteIndex}
             stacked={showMenu}
             stackIndex={index + 1}
